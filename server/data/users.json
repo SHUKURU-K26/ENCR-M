@@ -1,0 +1,13 @@
+[
+  {
+    "id": "faf9d5b2-eb56-445a-9184-e077e0b5900f",
+    "username": "admin",
+    "full_name": "System Administrator",
+    "phone": "0781234567",
+    "password": "$2b$12$ZbEj1cCQDw/vBqwwI64s6uK0lg3dSsSa5LOPS3hYnRXucx0KpA09m",
+    "role": "admin",
+    "avatar_color": "#ef4444",
+    "created_at": 1781403071.1795037,
+    "is_active": true
+  }
+]
