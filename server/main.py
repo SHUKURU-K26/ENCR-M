@@ -8,7 +8,7 @@ app = FastAPI(title="ENCR-M Secure Messaging", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=["http://localhost:5173", "https://encr-m.netlify.app"],
     allow_methods=["*"],
     allow_headers=["*"],
     allow_credentials=True,

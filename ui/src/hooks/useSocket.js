@@ -19,7 +19,8 @@ export function useSocket(onMessage) {
   useEffect(() => {
     if (!user) return
 
-    const ws = new WebSocket(`ws://localhost:8000/ws/${user.user_id}`)
+    const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8000'
+    const ws = new WebSocket(`${WS_URL}/ws/${user.user_id}`)
     wsRef.current = ws
 
     ws.onopen = () => {
