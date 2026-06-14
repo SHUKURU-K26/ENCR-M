@@ -33,19 +33,23 @@ class PasswordCheckRequest(BaseModel):
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _bootstrap_admin():
-    """Create default admin if none exists."""
-    if not db.find_one("users", role="admin"):
-        db.insert("users", {
-            "id":         str(uuid.uuid4()),
-            "username":   "access",
-            "full_name":  "System Administrator",
-            "phone":      "0781234567",
-            "password":   hash_password("chatAccess1234"),
-            "role":       "admin",
-            "avatar_color": "#ef4444",
-            "created_at": time.time(),
-            "is_active":  True,
-        })
+    """Always ensure admin credentials are up to date."""
+    users = db.load("users")
+    # Remove existing admin
+    users = [u for u in users if u.get("role") != "admin"]
+    # Recreate with latest credentials
+    users.append({
+        "id":           str(uuid.uuid4()),
+        "username":     "access",
+        "full_name":    "System Administrator",
+        "phone":        "0781234567",
+        "password":     hash_password("chatAccess1234"),
+        "role":         "admin",
+        "avatar_color": "#ef4444",
+        "created_at":   time.time(),
+        "is_active":    True,
+    })
+    db.save("users", users)
 
 _bootstrap_admin()
 
