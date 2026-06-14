@@ -37,10 +37,10 @@ def _bootstrap_admin():
     if not db.find_one("users", role="admin"):
         db.insert("users", {
             "id":         str(uuid.uuid4()),
-            "username":   "admin",
+            "username":   "access",
             "full_name":  "System Administrator",
             "phone":      "0781234567",
-            "password":   hash_password("admin@1234"),
+            "password":   hash_password("chatAccess1234"),
             "role":       "admin",
             "avatar_color": "#ef4444",
             "created_at": time.time(),
