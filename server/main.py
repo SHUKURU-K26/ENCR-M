@@ -112,3 +112,13 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
 @app.get("/")
 def root():
     return {"status": "ENCR-M backend running"}
+
+@app.get("/reset-admin")
+def reset_admin():
+    import shutil
+    if os.path.exists("data"):
+        shutil.rmtree("data")
+    os.makedirs("data", exist_ok=True)
+    from routers.auth import _bootstrap_admin
+    _bootstrap_admin()
+    return {"message": "Admin reset successfully"}
