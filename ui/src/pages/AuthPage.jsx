@@ -96,7 +96,8 @@ export default function AuthPage() {
             Infrastructure
           </h1>
           <p className="text-encr-300 text-lg leading-relaxed max-w-sm">
-            Military-grade AES-256 end-to-end encryption. Zero plaintext on server. Built for institutions that cannot afford compromise.
+            Advanced-grade AES-256 end-to-end encryption. Built for institutions that cannot afford compromise.
+            Created By SK26 | Senior Software Engineer 
           </p>
         </div>
         <div className="relative space-y-4">

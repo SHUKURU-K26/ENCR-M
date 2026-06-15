@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+
+# Backend data & uploads (never push real data)
+server/data/
+server/__pycache__/
+server/uploads/
+
+# Frontend
+ui/node_modules/
+ui/dist/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# VSCode
+.vscode/
