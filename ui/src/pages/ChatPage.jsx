@@ -1,17 +1,33 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
   MessageSquare, Users, LogOut, Shield, Sun, Moon,
-  Search, ChevronRight, Menu, X, Lock
+  Search, ChevronRight, ChevronLeft, Building2, Menu, X, Lock, EyeOff, Zap
 } from 'lucide-react'
 import api from '../utils/api'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { useSocket } from '../hooks/useSocket'
 import { decryptMessage, deriveConversationKey } from '../utils/crypto'
+import { ORG_ROLES } from '../constants'
 import Avatar from '../components/Avatar'
 import ChatWindow from '../components/ChatWindow'
 import AdminPanel from '../components/AdminPanel'
 import PasswordGate from '../components/PasswordGate'
+import Logo from '../components/Logo'
+
+const ORG_SECTIONS = [...ORG_ROLES.filter(r => r !== 'Other'), 'Other', 'Administration', 'Unassigned']
+
+function deptOf(c) {
+  if (c.role === 'admin') return 'Administration'
+  if (c.org_role && ORG_SECTIONS.includes(c.org_role)) return c.org_role
+  return 'Unassigned'
+}
+
+function deptIcon(section) {
+  if (section === 'Administration') return Shield
+  if (section === 'Unassigned') return Users
+  return Building2
+}
 
 export default function ChatPage() {
   const { user, logout } = useAuth()
@@ -22,6 +38,7 @@ export default function ChatPage() {
   const [activeContact, setActiveContact] = useState(null)
   const [pendingContact, setPendingContact] = useState(null)
   const [sidePanel, setSidePanel]         = useState('chats')
+  const [selectedDept, setSelectedDept]   = useState(null)
   const [sideOpen, setSideOpen]           = useState(false)
   const [onlineUsers, setOnlineUsers]     = useState(new Set())
   const [unread, setUnread]               = useState({})
@@ -54,7 +71,14 @@ export default function ChatPage() {
     api.get('/users/').then(r => setContacts(r.data)).catch(() => {})
   }, [])
 
-  function requestChat(contact) { setPendingContact(contact) }
+  function requestChat(contact) {
+    if (activeContact?.id === contact.id) {
+      setSideOpen(false) // already open — just close the mobile drawer, no re-lock
+      return
+    }
+    setPendingContact(contact)
+  }
+
   function confirmChat() {
     setActiveContact(pendingContact)
     setUnread(prev => ({ ...prev, [pendingContact.id]: 0 }))
@@ -62,10 +86,30 @@ export default function ChatPage() {
     setSideOpen(false)
   }
 
+  // ── Flat list (Chats tab) ────────────────────────────────────────────────
   const filtered = contacts.filter(c =>
     c.full_name.toLowerCase().includes(search.toLowerCase()) ||
     c.username.toLowerCase().includes(search.toLowerCase())
   )
+
+  // ── Role-grouped (Members tab) ───────────────────────────────────────────
+  const deptCounts = {}
+  ORG_SECTIONS.forEach(s => { deptCounts[s] = 0 })
+  contacts.forEach(c => { deptCounts[deptOf(c)] += 1 })
+
+  const visibleSections  = ORG_SECTIONS.filter(s => deptCounts[s] > 0)
+  const matchingSections = visibleSections.filter(s =>
+    s.toLowerCase().includes(search.toLowerCase())
+  )
+
+  const deptMembers = selectedDept
+    ? contacts
+        .filter(c => deptOf(c) === selectedDept)
+        .filter(c =>
+          c.full_name.toLowerCase().includes(search.toLowerCase()) ||
+          c.username.toLowerCase().includes(search.toLowerCase())
+        )
+    : []
 
   const navItems = [
     { id: 'chats',    icon: MessageSquare, label: 'Chats' },
@@ -87,11 +131,11 @@ export default function ChatPage() {
         {/* Brand */}
         <div className="px-4 pt-5 pb-4 flex items-center justify-between border-b border-encr-200 dark:border-encr-800">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-accent rounded-xl flex items-center justify-center">
-              <Shield size={16} className="text-white"/>
+            <div className="w-14 h-14 bg-accent rounded-xl flex items-center justify-center">
+              <Logo size={40} className="text-white"/>
             </div>
             <div>
-              <div className="font-bold text-encr-900 dark:text-encr-100 text-base leading-none">ENCR-M</div>
+              <div className="font-bold text-encr-900 dark:text-encr-100 text-base leading-none">V-UrugwiroChat</div>
               <div className="text-[10px] text-encr-400 font-mono">SECURE CHANNEL</div>
             </div>
           </div>
@@ -114,7 +158,7 @@ export default function ChatPage() {
         {/* Nav tabs */}
         <div className="px-3 py-3 flex gap-1 border-b border-encr-200 dark:border-encr-800">
           {navItems.map(n => (
-            <button key={n.id} onClick={() => setSidePanel(n.id)}
+            <button key={n.id} onClick={() => { setSidePanel(n.id); setSelectedDept(null); setSearch('') }}
               className={`flex-1 flex flex-col items-center gap-1 py-2.5 rounded-xl text-xs font-medium transition-colors
                 ${sidePanel === n.id
                   ? 'bg-accent/10 text-accent'
@@ -127,7 +171,8 @@ export default function ChatPage() {
 
         {sidePanel === 'admin' && <AdminPanel/>}
 
-        {(sidePanel === 'chats' || sidePanel === 'contacts') && (
+        {/* ── CHATS TAB — unchanged flat list with previews ── */}
+        {sidePanel === 'chats' && (
           <>
             <div className="px-3 py-3">
               <div className="relative">
@@ -163,6 +208,73 @@ export default function ChatPage() {
                   </button>
                 )
               })}
+            </div>
+          </>
+        )}
+
+        {/* ── MEMBERS TAB — role-based drill down ── */}
+        {sidePanel === 'contacts' && (
+          <>
+            <div className="px-3 py-3">
+              <div className="relative">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-encr-400"/>
+                <input className="input-field pl-9 py-2 text-xs"
+                  placeholder={selectedDept ? `Search in ${selectedDept}…` : 'Search departments…'}
+                  value={search} onChange={e => setSearch(e.target.value)}/>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-3 pb-4 space-y-1">
+              {selectedDept === null ? (
+                <>
+                  {matchingSections.length === 0 && (
+                    <div className="text-center py-12 text-encr-400 text-sm">No departments found</div>
+                  )}
+                  {matchingSections.map(section => {
+                    const Icon = deptIcon(section)
+                    return (
+                      <button key={section} onClick={() => { setSelectedDept(section); setSearch('') }}
+                        className="sidebar-item w-full">
+                        <div className="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center flex-shrink-0">
+                          <Icon size={16} className="text-accent"/>
+                        </div>
+                        <div className="flex-1 min-w-0 text-left">
+                          <div className="text-sm font-semibold text-encr-900 dark:text-encr-100">{section}</div>
+                          <div className="text-xs text-encr-400">
+                            {deptCounts[section]} member{deptCounts[section] !== 1 ? 's' : ''}
+                          </div>
+                        </div>
+                        <ChevronRight size={14} className="text-encr-300 flex-shrink-0"/>
+                      </button>
+                    )
+                  })}
+                </>
+              ) : (
+                <>
+                  <button onClick={() => { setSelectedDept(null); setSearch('') }}
+                    className="flex items-center gap-2 text-xs text-encr-400 hover:text-encr-700 dark:hover:text-encr-200 px-2 py-2 mb-1">
+                    <ChevronLeft size={14}/> All departments
+                  </button>
+
+                  {deptMembers.length === 0 && (
+                    <div className="text-center py-12 text-encr-400 text-sm">No members in {selectedDept}</div>
+                  )}
+                  {deptMembers.map(c => {
+                    const isActive = activeContact?.id === c.id
+                    return (
+                      <button key={c.id} onClick={() => requestChat(c)}
+                        className={`sidebar-item w-full ${isActive ? 'sidebar-item-active' : ''}`}>
+                        <Avatar name={c.full_name} color={c.avatar_color} size="md" online={onlineUsers.has(c.id)}/>
+                        <div className="flex-1 min-w-0 text-left">
+                          <div className="text-sm font-semibold text-encr-900 dark:text-encr-100 truncate">{c.full_name}</div>
+                          <div className="text-xs text-encr-400 truncate">@{c.username}</div>
+                        </div>
+                        {!isActive && <ChevronRight size={14} className="text-encr-300 flex-shrink-0"/>}
+                      </button>
+                    )
+                  })}
+                </>
+              )}
             </div>
           </>
         )}
@@ -207,10 +319,10 @@ export default function ChatPage() {
             <Menu size={22}/>
           </button>
           <div className="flex items-center gap-2 flex-1">
-            <div className="w-6 h-6 bg-accent rounded-lg flex items-center justify-center">
-              <Shield size={12} className="text-white"/>
+            <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center">
+              <Logo size={20} className="text-white"/>
             </div>
-            <span className="font-bold text-encr-900 dark:text-encr-100">ENCR-M</span>
+            <span className="font-bold text-encr-900 dark:text-encr-100">V-UrugwiroChat</span>
           </div>
         </div>
 
@@ -229,16 +341,16 @@ export default function ChatPage() {
               Select a contact to begin
             </h2>
             <p className="text-encr-400 text-sm max-w-xs leading-relaxed">
-              All conversations are AES-256 end-to-end encrypted. Messages never leave your device in plaintext.
+              All conversations are AES-256 end-to-end encrypted.
             </p>
             <div className="flex items-center gap-4 mt-6">
               {[
-                { icon: '🔐', label: 'E2E Encrypted' },
-                { icon: '⚡', label: 'Real-time' },
-                { icon: '🛡️', label: 'Zero-Knowledge' },
+                { icon: Lock, label: 'E2E Encrypted' },
+                { icon: Zap, label: 'Real-time' },
+                { icon: EyeOff, label: 'Zero-Knowledge' },
               ].map(f => (
                 <div key={f.label} className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-encr-100 dark:bg-encr-800/60">
-                  <span>{f.icon}</span>
+                  <f.icon size={14} className="text-accent" />
                   <span className="text-[10px] text-encr-500 font-medium">{f.label}</span>
                 </div>
               ))}

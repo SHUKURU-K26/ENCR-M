@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Send, Paperclip, Mic, X, Edit2, Reply, StopCircle } from 'lucide-react'
+import { Send, Paperclip, Mic, X, Edit2, Reply, StopCircle, Lock } from 'lucide-react'
 import api from '../utils/api'
 import { useAuth } from '../context/AuthContext'
 import { useSocket, socketSend } from '../hooks/useSocket'
@@ -250,7 +250,7 @@ export default function ChatWindow({ contact, onClose, onlineUsers }) {
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1 px-2 py-1 bg-green-500/10 rounded-lg">
             <div className="w-1.5 h-1.5 bg-green-500 rounded-full"/>
-            <span className="text-[10px] text-green-500 font-medium">E2E Encrypted</span>
+            <span className="text-[10px] text-green-500 font-medium">V-UrugwiroChat</span>
           </div>
           {onClose && (
             <button onClick={onClose}
@@ -265,9 +265,11 @@ export default function ChatWindow({ contact, onClose, onlineUsers }) {
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-0.5">
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center py-20">
+
             <div className="w-16 h-16 bg-accent/10 rounded-2xl flex items-center justify-center mb-4">
-              <span className="text-3xl">🔐</span>
+              <Lock size={28} className="text-accent" />
             </div>
+
             <div className="font-semibold text-encr-700 dark:text-encr-300 mb-1">Encrypted channel open</div>
             <div className="text-sm text-encr-400">Messages are AES-256 encrypted end-to-end</div>
           </div>

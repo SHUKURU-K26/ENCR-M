@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { Shield, Lock, Eye, EyeOff, Phone, User, KeyRound, ArrowRight, X, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Shield, Lock, Eye, EyeOff,Zap,Clock, Phone, User, KeyRound, ArrowRight, X, CheckCircle2, AlertCircle,ChevronDown, UserCheck} from 'lucide-react'
 import api from '../utils/api'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
+import Logo from '../components/Logo'
 
 const COLORS = ['#6366f1','#8b5cf6','#ec4899','#f59e0b','#10b981','#3b82f6','#ef4444','#14b8a6']
 
@@ -24,10 +25,10 @@ export default function AuthPage() {
   const [otpError, setOtpError]       = useState('')
 
   // Sign-up form
-  const [form, setForm] = useState({
-    username: '', full_name: '', phone: '', password: '', confirmPwd: '',
-    avatar_color: COLORS[0],
-  })
+ const [form, setForm] = useState({
+  username: '', full_name: '', phone: '', password: '', confirmPwd: '',
+  avatar_color: COLORS[0], org_role: '', org_role_detail: '',
+})
 
   // Login form
   const [loginForm, setLoginForm] = useState({ identifier: '', password: '' })
@@ -37,13 +38,21 @@ export default function AuthPage() {
     if (otpCode.length !== 6) { setOtpError('Enter the 6-digit code'); return }
     setOtpLoading(true); setOtpError('')
     try {
-      await api.post('/auth/verify-otp', { otp: otpCode })
+      const { data } = await api.post('/auth/verify-otp', { otp: otpCode })
       setOtpVerified(true)
+      // Pre-fill and lock the role the admin bound to this OTP
+      if (data.role) {
+        setForm(f => ({
+          ...f,
+          org_role: data.role,
+          org_role_detail: data.role_detail || ''
+        }))
+      }
       setTimeout(() => setOtpModal(false), 800)
     } catch (e) {
       setOtpError(e.response?.data?.detail || 'Invalid or expired OTP')
     } finally { setOtpLoading(false) }
-  }
+}
 
   // ── Login ───────────────────────────────────────────────────────────────
   async function handleLogin(e) {
@@ -64,7 +73,11 @@ export default function AuthPage() {
     if (form.password.length < 6) { setError('Password must be at least 6 characters'); return }
     setLoading(true)
     try {
-      const { data } = await api.post('/auth/signup', { otp: otpCode, ...form })
+      const { data } = await api.post('/auth/signup', {
+        otp: otpCode, ...form,
+        org_role: form.org_role,
+        org_role_detail: form.org_role === 'Other' ? form.org_role_detail : null,
+      })
       login({ user_id: data.user_id, username: data.username, full_name: data.full_name, role: data.role, avatar_color: data.avatar_color }, data.token)
     } catch (e) {
       setError(e.response?.data?.detail || 'Signup failed')
@@ -85,29 +98,31 @@ export default function AuthPage() {
         <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=60 height=60 viewBox=0 0 60 60 xmlns=http://www.w3.org/2000/svg%3E%3Cg fill=none fill-rule=evenodd%3E%3Cg fill=%239C92AC fill-opacity=0.04%3E%3Cpath d=M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-30" />
         <div className="relative">
           <div className="flex items-center gap-3 mb-16">
-            <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center shadow-glow">
-              <Shield size={20} className="text-white" />
+            <div className="w-15 h-15 bg-accent rounded-xl flex items-center justify-center shadow-glow">
+              <Logo size={40} className="text-white" />
             </div>
-            <span className="font-display text-xl font-bold text-white tracking-tight">ENCR-M</span>
+            <span className="font-display text-lg font-bold text-white tracking-wide ">V-Urugwiro<span className='text-accent'>Chart</span></span>
           </div>
           <h1 className="font-display text-5xl font-bold text-white leading-tight mb-6">
             Classified<br/>
             <span className="text-accent">Communication</span><br/>
-            Infrastructure
+            Messenger
           </h1>
           <p className="text-encr-300 text-lg leading-relaxed max-w-sm">
-            Advanced-grade AES-256 end-to-end encryption. Built for institutions that cannot afford compromise.
-            Created By SK26 | Senior Software Engineer 
+            Advanced-grade AES-256 end-to-end encryption Messenger.            
           </p>
         </div>
         <div className="relative space-y-4">
+          {/* feature list — replace the array and the rendering */}
           {[
-            { icon: '🔐', label: 'AES-256-CBC Encryption', desc: 'Every message encrypted before leaving your device' },
-            { icon: '⚡', label: 'Real-time Delivery', desc: 'WebSocket-powered instant messaging' },
-            { icon: '🛡️', label: 'Zero-Knowledge Server', desc: 'Server stores only ciphertext — never plaintext' },
+            { icon: Lock, label: 'AES-256-CBC Encryption', desc: 'Every message encrypted before leaving your device' },
+            { icon: Zap, label: 'Real-time Delivery', desc: 'WebSocket-powered instant messaging' },
+            { icon: EyeOff, label: 'Zero-Knowledge Server', desc: 'Server stores only ciphertext — never plaintext' },
           ].map(f => (
             <div key={f.label} className="flex items-start gap-4 p-4 rounded-xl bg-white/5 border border-white/10">
-              <span className="text-2xl">{f.icon}</span>
+              <div className="w-9 h-9 rounded-lg bg-accent/15 flex items-center justify-center flex-shrink-0">
+                <f.icon size={16} className="text-accent" />
+              </div>
               <div>
                 <div className="text-white font-semibold text-sm">{f.label}</div>
                 <div className="text-encr-400 text-xs mt-0.5">{f.desc}</div>
@@ -122,9 +137,9 @@ export default function AuthPage() {
         {/* Mobile logo */}
         <div className="lg:hidden flex items-center gap-2 mb-8">
           <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
-            <Shield size={16} className="text-white" />
+            <Logo size={20} className="text-white" />
           </div>
-          <span className="font-display text-lg font-bold text-white">ENCR-M</span>
+          <span className="font-display text-lg font-bold text-white">Urugwiro</span>
         </div>
 
         <div className="w-full max-w-md">
@@ -156,7 +171,7 @@ export default function AuthPage() {
             {tab === 'login' && (
               <form onSubmit={handleLogin} className="space-y-5">
                 <div>
-                  <div className="text-encr-100 font-display text-2xl font-bold mb-1">Welcome back</div>
+                  <div className="text-encr-900 dark:text-encr-100 font-display text-2xl font-bold mb-1">Welcome back</div>
                   <div className="text-encr-400 text-sm">Sign in to your secure channel</div>
                 </div>
 
@@ -208,7 +223,7 @@ export default function AuthPage() {
             {tab === 'signup' && (
               <form onSubmit={handleSignup} className="space-y-4">
                 <div>
-                  <div className="text-encr-100 font-display text-2xl font-bold mb-1">Join ENCR-M</div>
+                  <div className="text-encr-900 dark:text-encr-100 font-display text-2xl font-bold mb-1">Join Urugwiro</div>
                   <div className="text-encr-400 text-sm">Requires OTP from your institution head</div>
                 </div>
 
@@ -259,6 +274,44 @@ export default function AuthPage() {
                   </div>
                 </div>
 
+                {/* Institutional role */}
+                <div className="space-y-2">
+                  <label className="text-encr-400 text-xs font-medium">Institutional role</label>
+                  <div className="relative">
+                    <select
+                      className="input-field appearance-none pr-9 cursor-pointer disabled:opacity-60"
+                      value={form.org_role}
+                      disabled={!otpVerified || !!form.org_role} // locked once OTP fills it
+                      onChange={e => setForm(f => ({ ...f, org_role: e.target.value, org_role_detail: '' }))}
+                      required>
+                      <option value="">Select your role…</option>
+                      {['Minister','Senator','Deputy','Governor','Mayor',
+                        'Director General','Permanent Secretary','Other'].map(r => (
+                        <option key={r} value={r}>{r}</option>
+                      ))}
+                    </select>
+                    <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-encr-400 pointer-events-none"/>
+                  </div>
+                  {/* "Other" free-text — only shown when user picks it themselves (OTP didn't lock a role) */}
+                  {form.org_role === 'Other' && !form.org_role_detail && (
+                    <input
+                      className="input-field"
+                      placeholder="Describe your role"
+                      value={form.org_role_detail}
+                      onChange={e => setForm(f => ({ ...f, org_role_detail: e.target.value }))}
+                      disabled={!otpVerified}
+                      required
+                    />
+                  )}
+                  {/* Show the locked role as a read-only badge when OTP pre-filled it */}
+                  {form.org_role && otpVerified && (
+                    <div className="flex items-center gap-1.5 text-xs text-accent">
+                      <UserCheck size={12}/>
+                      Role assigned by your invite code
+                    </div>
+                  )}
+                </div>
+
                 <button type="submit" disabled={loading || !otpVerified} className="btn-primary w-full flex items-center justify-center gap-2">
                   {loading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/> : null}
                   {loading ? 'Creating account…' : 'Create Secure Account'}
@@ -283,10 +336,11 @@ export default function AuthPage() {
               </button>
             </div>
 
-            <div className="flex items-center gap-3 bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-3 mb-5">
-              <span>⏱</span>
-              <p className="text-amber-400 text-xs">This code expires 5 minutes after generation. Request a fresh one if expired.</p>
-            </div>
+            {/* OTP modal expiry warning */}
+          <div className="flex items-center gap-3 bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-3 mb-5">
+            <Clock size={16} className="text-amber-400 flex-shrink-0" />
+            <p className="text-amber-400 text-xs">This code expires 5 minutes after generation. Request a fresh one if expired.</p>
+          </div>
 
             {otpError && (
               <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/30 text-red-400 rounded-xl px-4 py-3 mb-4 text-sm">
