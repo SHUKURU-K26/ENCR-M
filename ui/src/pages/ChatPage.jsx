@@ -46,25 +46,26 @@ export default function ChatPage() {
 
   // ── WebSocket ─────────────────────────────────────────────────────────────
   useSocket(useCallback((data) => {
-    if (data.type === 'presence') {
-      setOnlineUsers(prev => {
-        const s = new Set(prev)
-        data.status === 'online' ? s.add(data.user_id) : s.delete(data.user_id)
-        return s
-      })
+  if (data.type === 'presence') {
+    setOnlineUsers(prev => {
+      const s = new Set(prev)
+      data.status === 'online' ? s.add(data.user_id) : s.delete(data.user_id)
+      return s
+    })
+  }
+  if (data.type === 'message') {
+    const p = data.payload
+    const senderId = p.from
+    const isViewingThisChat = activeContact?.id === senderId
+    if (senderId !== user.user_id && !isViewingThisChat) {
+      setUnread(prev => ({ ...prev, [senderId]: (prev[senderId] || 0) + 1 }))
     }
-    if (data.type === 'message') {
-      const p = data.payload
-      const senderId = p.from
-      if (senderId !== user.user_id) {
-        setUnread(prev => ({ ...prev, [senderId]: (prev[senderId] || 0) + 1 }))
-      }
-      const key = deriveConversationKey(user.user_id, senderId === user.user_id ? p.to : senderId)
-      const dec = p.type === 'text' ? decryptMessage(p.encrypted_body, p.iv, key) : `📎 ${p.type}`
-      const otherId = senderId === user.user_id ? p.to : senderId
-      setLastMsgs(prev => ({ ...prev, [otherId]: { text: dec, ts: p.timestamp } }))
-    }
-  }, [user.user_id]))
+    const key = deriveConversationKey(user.user_id, senderId === user.user_id ? p.to : senderId)
+    const dec = p.type === 'text' ? decryptMessage(p.encrypted_body, p.iv, key) : `📎 ${p.type}`
+    const otherId = senderId === user.user_id ? p.to : senderId
+    setLastMsgs(prev => ({ ...prev, [otherId]: { text: dec, ts: p.timestamp } }))
+  }
+}, [user.user_id, activeContact?.id]))
 
   // ── Load contacts ─────────────────────────────────────────────────────────
   useEffect(() => {
@@ -146,7 +147,7 @@ export default function ChatPage() {
 
         {/* User info */}
         <div className="px-4 py-3 flex items-center gap-3 border-b border-encr-200 dark:border-encr-800">
-          <Avatar name={user.full_name} color={user.avatar_color} size="sm" online={true}/>
+          <Avatar name={user.full_name} color={user.avatar_color} avatarUrl={user.avatar_url} size="sm" online={true}/>
           <div className="flex-1 min-w-0">
             <div className="text-sm font-semibold text-encr-900 dark:text-encr-100 truncate">{user.full_name}</div>
             <div className="text-xs text-encr-400">@{user.username}
@@ -193,7 +194,7 @@ export default function ChatPage() {
                 return (
                   <button key={c.id} onClick={() => requestChat(c)}
                     className={`sidebar-item w-full ${isActive ? 'sidebar-item-active' : ''}`}>
-                    <Avatar name={c.full_name} color={c.avatar_color} size="md" online={onlineUsers.has(c.id)}/>
+                    <Avatar name={c.full_name} color={c.avatar_color} avatarUrl={c.avatar_url} size="md" online={onlineUsers.has(c.id)}/>
                     <div className="flex-1 min-w-0 text-left">
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-semibold text-encr-900 dark:text-encr-100 truncate">{c.full_name}</span>
@@ -264,7 +265,7 @@ export default function ChatPage() {
                     return (
                       <button key={c.id} onClick={() => requestChat(c)}
                         className={`sidebar-item w-full ${isActive ? 'sidebar-item-active' : ''}`}>
-                        <Avatar name={c.full_name} color={c.avatar_color} size="md" online={onlineUsers.has(c.id)}/>
+                        <Avatar name={c.full_name} color={c.avatar_color} avatarUrl={c.avatar_url} size="md" online={onlineUsers.has(c.id)}/>
                         <div className="flex-1 min-w-0 text-left">
                           <div className="text-sm font-semibold text-encr-900 dark:text-encr-100 truncate">{c.full_name}</div>
                           <div className="text-xs text-encr-400 truncate">@{c.username}</div>

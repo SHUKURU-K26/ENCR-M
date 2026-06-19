@@ -42,7 +42,7 @@ export default function PasswordGate({ contact, onSuccess, onCancel }) {
 
         {/* Contact preview */}
         <div className="flex items-center gap-3 p-3 bg-encr-50 dark:bg-encr-800/60 rounded-xl mb-5">
-          <Avatar name={contact.full_name} color={contact.avatar_color} size="sm" />
+          <Avatar name={contact.full_name} color={contact.avatar_color} avatarUrl={contact.avatar_url} size="sm" />
           <div>
             <div className="text-sm font-semibold text-encr-900 dark:text-encr-100">{contact.full_name}</div>
             <div className="text-xs text-encr-400">@{contact.username}</div>

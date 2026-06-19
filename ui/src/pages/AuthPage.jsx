@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Shield, Lock, Eye, EyeOff,Zap,Clock, Phone, User, KeyRound, ArrowRight, X, CheckCircle2, AlertCircle,ChevronDown, UserCheck} from 'lucide-react'
+import { useState, useRef } from 'react'
+import { Shield, Lock, Eye, EyeOff, Phone, UserCheck, User, KeyRound, ArrowRight, X, ChevronDown, CheckCircle2, AlertCircle, Zap, Clock, Camera } from 'lucide-react'
 import api from '../utils/api'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
@@ -25,10 +25,29 @@ export default function AuthPage() {
   const [otpError, setOtpError]       = useState('')
 
   // Sign-up form
- const [form, setForm] = useState({
-  username: '', full_name: '', phone: '', password: '', confirmPwd: '',
-  avatar_color: COLORS[0], org_role: '', org_role_detail: '',
-})
+// Sign-up form
+  const [form, setForm] = useState({
+    username: '', full_name: '', phone: '', password: '', confirmPwd: '',
+    org_role: '', org_role_detail: '',
+  })
+  const [avatarFile, setAvatarFile]       = useState(null)
+  const [avatarPreview, setAvatarPreview] = useState(null)
+  const fileInputRef = useRef(null)
+
+  function handleAvatarPick(e) {
+    const f = e.target.files?.[0]
+    if (!f) return
+    setAvatarFile(f)
+    setAvatarPreview(URL.createObjectURL(f))
+  }
+
+  // No more manual color picking — derive a consistent fallback color
+  // from the person's name, used only if they skip the photo
+  function hashColor(str) {
+    let hash = 0
+    for (let i = 0; i < str.length; i++) hash = (hash * 31 + str.charCodeAt(i)) >>> 0
+    return COLORS[hash % COLORS.length]
+  }
 
   // Login form
   const [loginForm, setLoginForm] = useState({ identifier: '', password: '' })
@@ -73,12 +92,33 @@ export default function AuthPage() {
     if (form.password.length < 6) { setError('Password must be at least 6 characters'); return }
     setLoading(true)
     try {
+      const avatar_color = hashColor(form.full_name || form.username || 'user')
       const { data } = await api.post('/auth/signup', {
         otp: otpCode, ...form,
+        avatar_color,
         org_role: form.org_role,
         org_role_detail: form.org_role === 'Other' ? form.org_role_detail : null,
       })
-      login({ user_id: data.user_id, username: data.username, full_name: data.full_name, role: data.role, avatar_color: data.avatar_color }, data.token)
+
+      let avatar_url = null
+      if (avatarFile) {
+        try {
+          // Stash the token now so the upload call below is authenticated —
+          // we deliberately call login() once at the end, not yet
+          localStorage.setItem('encr_token', data.token)
+          const fd = new FormData(); fd.append('file', avatarFile)
+          const { data: uploaded } = await api.post('/media/upload', fd)
+          await api.patch('/users/me/avatar', { url: uploaded.url })
+          avatar_url = uploaded.url
+        } catch {
+          // Non-fatal — account still gets created, just without a photo for now
+        }
+      }
+
+      login({
+        user_id: data.user_id, username: data.username, full_name: data.full_name,
+        role: data.role, avatar_color: data.avatar_color, avatar_url, org_role: form.org_role,
+      }, data.token)
     } catch (e) {
       setError(e.response?.data?.detail || 'Signup failed')
     } finally { setLoading(false) }
@@ -262,15 +302,25 @@ export default function AuthPage() {
                   value={form.confirmPwd} onChange={e => setForm(f => ({...f, confirmPwd: e.target.value}))}
                   required disabled={!otpVerified} />
 
-                {/* Avatar colour */}
+                {/* Profile photo */}
                 <div className="space-y-2">
-                  <label className="text-encr-400 text-xs font-medium">Avatar colour</label>
-                  <div className="flex gap-2 flex-wrap">
-                    {COLORS.map(c => (
-                      <button key={c} type="button" onClick={() => setForm(f => ({...f, avatar_color: c}))}
-                        style={{ background: c }}
-                        className={`w-7 h-7 rounded-full transition-transform ${form.avatar_color === c ? 'ring-2 ring-white scale-110' : 'opacity-70 hover:opacity-100'}`} />
-                    ))}
+                  <label className="text-encr-400 text-xs font-medium">Profile photo (optional)</label>
+                  <div className="flex items-center gap-4">
+                    <button type="button"
+                      onClick={() => { if (otpVerified) fileInputRef.current?.click() }}
+                      className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0 bg-encr-800 border-2 border-dashed border-encr-600 hover:border-accent transition-colors flex items-center justify-center disabled:opacity-50">
+                      {avatarPreview ? (
+                        <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
+                      ) : (
+                        <Camera size={20} className="text-encr-400" />
+                      )}
+                    </button>
+                    <p className="text-xs text-encr-400 leading-relaxed">
+                      {avatarPreview ? 'Looks good — click to change it.' : 'Click the circle to add a photo. You can skip this.'}
+                    </p>
+                    <input ref={fileInputRef} type="file"
+                      accept="image/png,image/jpeg,image/webp,image/gif"
+                      className="hidden" onChange={handleAvatarPick} />
                   </div>
                 </div>
 

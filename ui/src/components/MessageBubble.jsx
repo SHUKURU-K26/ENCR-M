@@ -1,14 +1,21 @@
-import { useState, useRef } from 'react'
-import { MoreVertical, Edit2, Trash2, Reply, Check, CheckCheck, Mic, FileText } from 'lucide-react'
-
+import { useState, useRef, useEffect } from 'react'
+import { MoreVertical, Edit2, Trash2, Reply, Check, CheckCheck, Mic, FileText, X, Download } from 'lucide-react'
 function formatTime(ts) {
   return new Date(ts * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 
 export default function MessageBubble({ msg, isOwn, onEdit, onDelete, onReply, replyMsg }) {
   const [menu, setMenu] = useState(false)
+  const [lightbox, setLightbox] = useState(false)
   const menuRef = useRef(null)
 
+  useEffect(() => {
+    if (!lightbox) return
+    const onKey = e => { if (e.key === 'Escape') setLightbox(false) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [lightbox])
+  
   if (msg.deleted) return (
     <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'} mb-0.5`}>
       <div className="px-3 py-1.5 rounded-2xl bg-encr-100/60 dark:bg-encr-800/40 text-encr-400 italic text-xs">
@@ -42,7 +49,8 @@ export default function MessageBubble({ msg, isOwn, onEdit, onDelete, onReply, r
           {/* Image */}
           {msg.type === 'image' && msg.file_url && (
             <img src={msg.file_url} alt="img"
-              className="rounded-xl mb-1.5 max-h-56 w-auto object-cover cursor-pointer"
+              onClick={() => setLightbox(true)}
+              className="rounded-xl mb-1.5 max-h-56 w-auto object-cover cursor-pointer hover:opacity-90 transition-opacity"
               style={{ maxWidth: '260px' }}/>
           )}
 
@@ -137,7 +145,7 @@ export default function MessageBubble({ msg, isOwn, onEdit, onDelete, onReply, r
                 <Edit2 size={13}/> Edit
               </button>
             )}
-            {isOwn && (
+          {isOwn && (
               <button onClick={() => { onDelete(msg.id); setMenu(false) }}
                 className="flex items-center gap-2 w-full px-3 py-2 rounded-lg
                   hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 text-xs">
@@ -147,6 +155,28 @@ export default function MessageBubble({ msg, isOwn, onEdit, onDelete, onReply, r
           </div>
         )}
       </div>
+
+      {/* Image lightbox */}
+      {lightbox && msg.type === 'image' && msg.file_url && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fade-in"
+          onClick={() => setLightbox(false)}>
+          <div className="relative max-w-[90vw] max-h-[90vh]" onClick={e => e.stopPropagation()}>
+            <img src={msg.file_url} alt="img"
+              className="rounded-xl max-w-[90vw] max-h-[90vh] object-contain shadow-card"/>
+            <div className="absolute top-3 right-3 flex items-center gap-2">
+              <a href={msg.file_url} download={msg.file_name || 'image'} target="_blank" rel="noreferrer"
+                className="w-9 h-9 flex items-center justify-center rounded-lg bg-black/50 text-white hover:bg-black/70 transition-colors">
+                <Download size={16}/>
+              </a>
+              <button onClick={() => setLightbox(false)}
+                className="w-9 h-9 flex items-center justify-center rounded-lg bg-black/50 text-white hover:bg-black/70 transition-colors">
+                <X size={16}/>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

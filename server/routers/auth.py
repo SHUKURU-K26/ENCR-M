@@ -116,9 +116,13 @@ def login(body: LoginRequest):
         raise HTTPException(403, "Account disabled")
     token = create_token(user["id"], user["username"], user["role"])
     return {
-        "token": token, "user_id": user["id"], "username": user["username"],
-        "full_name": user["full_name"], "role": user["role"],
+        "token":        token,
+        "user_id":      user["id"],
+        "username":     user["username"],
+        "full_name":    user["full_name"],
+        "role":         user["role"],
         "avatar_color": user.get("avatar_color", "#6366f1"),
+        "avatar_url":   user.get("avatar_url"),
     }
 
 

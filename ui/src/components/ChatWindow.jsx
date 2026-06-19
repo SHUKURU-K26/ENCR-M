@@ -238,7 +238,7 @@ export default function ChatWindow({ contact, onClose, onlineUsers }) {
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-encr-200 dark:border-encr-800 bg-white/80 dark:bg-encr-900/80 backdrop-blur-sm flex-shrink-0">
-        <Avatar name={contact.full_name} color={contact.avatar_color} size="md" online={isOnline}/>
+        <Avatar name={contact.full_name} color={contact.avatar_color} avatarUrl={contact.avatar_url} size="md" online={isOnline}/>
         <div className="flex-1 min-w-0">
           <div className="font-semibold text-encr-900 dark:text-encr-100 truncate">{contact.full_name}</div>
           <div className="text-xs text-encr-400 truncate">

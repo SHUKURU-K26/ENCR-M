@@ -288,7 +288,7 @@ export default function AdminPanel() {
                             ${u.is_active
                               ? 'bg-white dark:bg-encr-900'
                               : 'bg-red-50/40 dark:bg-red-900/10'}`}>
-                          <Avatar name={u.full_name} color={u.avatar_color} size="sm" online={null}/>
+                          <Avatar name={u.full_name} color={u.avatar_color} avatarUrl={u.avatar_url} size="sm" online={null}/>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-1.5 flex-wrap">
                               <span className="font-semibold text-sm text-encr-900 dark:text-encr-100 truncate">
