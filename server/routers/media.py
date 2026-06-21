@@ -8,6 +8,15 @@ router = APIRouter()
 UPLOAD_DIR = "uploads"
 MAX_SIZE   = 50 * 1024 * 1024  # 50 MB
 
+# Render sets RENDER_EXTERNAL_URL automatically on every web service — no
+# manual config needed there. Falls back to localhost for local dev. If you
+# ever host the backend somewhere else, just set PUBLIC_BASE_URL yourself.
+PUBLIC_BASE_URL = (
+    os.getenv("RENDER_EXTERNAL_URL")
+    or os.getenv("PUBLIC_BASE_URL")
+    or "http://localhost:8000"
+).rstrip("/")
+
 ALLOWED_TYPES = {
     "image":  {"image/jpeg", "image/png", "image/gif", "image/webp"},
     "video":  {"video/mp4", "video/webm", "video/ogg"},
@@ -39,7 +48,7 @@ async def upload_file(file: UploadFile = File(...), current=Depends(get_current_
     media_type = _get_media_type(mime)
 
     return {
-        "url":        f"/uploads/{filename}",
+        "url":        f"{PUBLIC_BASE_URL}/uploads/{filename}",
         "filename":   file.filename,
         "media_type": media_type,
         "mime":       mime,
