@@ -4,6 +4,10 @@ import api from '../utils/api'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import Logo from '../components/Logo'
+import ImigongoBorder from '../components/ImigongoBorder'
+import ImigongoBackdrop from '../components/ImigongoBackdrop'
+import SplashScreen from '../components/SplashScreen'
+import image1 from '../assets/image.png'
 
 const COLORS = ['#6366f1','#8b5cf6','#ec4899','#f59e0b','#10b981','#3b82f6','#ef4444','#14b8a6']
 
@@ -125,51 +129,59 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen flex bg-encr-950 overflow-hidden relative">
-      {/* Ambient glow blobs */}
+    <div className="min-h-screen flex bg-encr-50 dark:bg-encr-950 overflow-hidden relative">   
+      <SplashScreen>
+        V-Urugwiro<span className="text-accent">Chat</span>
+      </SplashScreen>
+      {/* Subtle Imigongo-inspired geometric backdrop */}
+      <ImigongoBackdrop />      
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-accent/20 rounded-full blur-[120px]" />
-        <div className="absolute -bottom-40 -right-20 w-80 h-80 bg-purple-600/15 rounded-full blur-[100px]" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-encr-600/5 rounded-full blur-[180px]" />
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-accent/15 rounded-full blur-[120px]" />
       </div>
 
       {/* Left branding panel — hidden on mobile */}
-      <div className="hidden lg:flex flex-col justify-between w-[45%] bg-gradient-to-br from-encr-900 via-encr-800 to-encr-950 p-12 relative overflow-hidden border-r border-encr-700/30">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=60 height=60 viewBox=0 0 60 60 xmlns=http://www.w3.org/2000/svg%3E%3Cg fill=none fill-rule=evenodd%3E%3Cg fill=%239C92AC fill-opacity=0.04%3E%3Cpath d=M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-30" />
+      <div className="hidden lg:flex flex-col justify-between w-[45%] bg-encr-50 dark:bg-gradient-to-br dark:from-encr-900 dark:via-encr-800 dark:to-encr-950 p-12 relative overflow-hidden border-r border-encr-200 dark:border-encr-700/30">
+        
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=60 height=60 viewBox=0 0 60 60 xmlns=http://www.w3.org/2000/svg%3E%3Cg fill=none fill-rule=evenodd%3E%3Cg fill=%239C92AC fill-opacity=0.04%3E%3Cpath d=M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-10" />
         <div className="relative">
           <div className="flex items-center gap-3 mb-16">
             <div className="w-15 h-15 bg-accent rounded-xl flex items-center justify-center shadow-glow">
               <Logo size={40} className="text-white" />
             </div>
-            <span className="font-display text-lg font-bold text-white tracking-wide ">V-Urugwiro<span className='text-accent'>Chart</span></span>
+            <span className="font-display text-lg font-bold text-encr-900 dark:text-white tracking-wide ">V-Urugwiro<span className='text-accent'>Chart</span></span>
           </div>
-          <h1 className="font-display text-5xl font-bold text-white leading-tight mb-6">
-            Classified<br/>
-            <span className="text-accent">Communication</span><br/>
-            Messenger
+          <h1 className="font-display text-5xl font-bold text-encr-900 dark:text-white leading-tight mb-6">
+            Trusted<br/>
+          <span className="text-accent">Conversations</span><br/>of State
           </h1>
-          <p className="text-encr-300 text-lg leading-relaxed max-w-sm">
-            Advanced-grade AES-256 end-to-end encryption Messenger.            
+          <p className="text-encr-600 dark:text-encr-300 text-lg leading-relaxed max-w-sm">
+            Every conversation here stays exactly where it belongs — between the people having it.
           </p>
         </div>
+
+        
+
         <div className="relative space-y-4">
           {/* feature list — replace the array and the rendering */}
           {[
-            { icon: Lock, label: 'AES-256-CBC Encryption', desc: 'Every message encrypted before leaving your device' },
-            { icon: Zap, label: 'Real-time Delivery', desc: 'WebSocket-powered instant messaging' },
-            { icon: EyeOff, label: 'Zero-Knowledge Server', desc: 'Server stores only ciphertext — never plaintext' },
+            { icon: Lock, label: 'Sealed the Moment You Send It', desc: 'What you write becomes unreadable to anyone else the instant it leaves your hands.' },
+            { icon: Zap, label: 'Delivered Without Delay', desc: 'Conversations move as fast as you do — no waiting, no lag.' },
+            { icon: EyeOff, label: 'Private, Even From Us', desc: 'Not even the system itself can read what is said. Only the people in the conversation can.' },
           ].map(f => (
-            <div key={f.label} className="flex items-start gap-4 p-4 rounded-xl bg-white/5 border border-white/10">
+            <div key={f.label} className="flex items-start gap-4 p-4 rounded-xl bg-encr-900/5 dark:bg-white/5 border border-encr-900/10 dark:border-white/10">
               <div className="w-9 h-9 rounded-lg bg-accent/15 flex items-center justify-center flex-shrink-0">
                 <f.icon size={16} className="text-accent" />
               </div>
               <div>
-                <div className="text-white font-semibold text-sm">{f.label}</div>
+                <div className="text-encr-900 dark:text-white font-semibold text-sm">{f.label}</div>
                 <div className="text-encr-400 text-xs mt-0.5">{f.desc}</div>
               </div>
             </div>
-          ))}
+          ))}          
         </div>
+        <p className="text-encr-100 text-xs text-center mt-3">
+          <span className="font-semibold text-encr-400"> {new Date().getFullYear()}</span> &copy; V-Urugwiro Chat. All rights reserved.
+        </p>
       </div>
 
       {/* Right auth panel */}
@@ -179,16 +191,16 @@ export default function AuthPage() {
           <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
             <Logo size={20} className="text-white" />
           </div>
-          <span className="font-display text-lg font-bold text-white">Urugwiro</span>
+          <span className="font-display text-lg font-bold text-encr-900 dark:text-white">Urugwiro</span>
         </div>
 
         <div className="w-full max-w-md">
           {/* Tab switcher */}
-          <div className="flex bg-encr-900/60 border border-encr-700/50 rounded-2xl p-1 mb-8">
-            {['login','signup'].map(t => (
+          <div className="flex bg-encr-100/60 dark:bg-encr-900/60 border border-encr-200 dark:border-encr-700/50 rounded-2xl p-1 mb-8">
+              {['login','signup'].map(t => (
               <button key={t} onClick={() => { setTab(t); setError('') }}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold capitalize transition-all duration-200
-                ${tab === t ? 'bg-accent text-white shadow-glow-sm' : 'text-encr-400 hover:text-encr-200'}`}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 hover:cursor-pointer hover:opacity-60 rounded-xl text-sm font-semibold capitalize transition-all duration-200
+                ${tab === t ? 'bg-accent text-white shadow-glow-sm' : 'text-encr-400 hover:text-encr-700 dark:hover:text-encr-200'}`}
               >
                 {t === 'login' ? (
                   <><Lock size={14} /> <span>Sign In</span></>
@@ -200,7 +212,8 @@ export default function AuthPage() {
             ))}
           </div>
 
-          <div className="glass-card p-8">
+          
+          <div className="glass-card rounded-t-2xl p-8">
             {error && (
               <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/30 text-red-400 rounded-xl px-4 py-3 mb-5 text-sm">
                 <AlertCircle size={16} /> {error}
@@ -211,6 +224,8 @@ export default function AuthPage() {
             {tab === 'login' && (
               <form onSubmit={handleLogin} className="space-y-5">
                 <div>
+                  {/*Place the image at the center*/}                  
+                  <img src={image1} alt="Welcome" className='w-20 h-20 object-contain mx-auto'/>
                   <div className="text-encr-900 dark:text-encr-100 font-display text-2xl font-bold mb-1">Welcome back</div>
                   <div className="text-encr-400 text-sm">Sign in to your secure channel</div>
                 </div>
@@ -219,7 +234,7 @@ export default function AuthPage() {
                 <div className="flex gap-2">
                   {['username','phone'].map(m => (
                     <button type="button" key={m} onClick={() => setLoginBy(m)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all
+                      className={`flex items-center gap-1.5 px-3 py-1.5 hover:cursor-pointer hover:opacity-60 rounded-lg text-xs font-medium border transition-all
                         ${loginBy === m ? 'bg-accent/15 border-accent/40 text-accent' : 'border-encr-700 text-encr-400 hover:border-encr-500'}`}>
                       {m === 'username' ? <User size={12}/> : <Phone size={12}/>}
                       {m === 'username' ? 'Username' : 'Phone'}
@@ -308,7 +323,7 @@ export default function AuthPage() {
                   <div className="flex items-center gap-4">
                     <button type="button"
                       onClick={() => { if (otpVerified) fileInputRef.current?.click() }}
-                      className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0 bg-encr-800 border-2 border-dashed border-encr-600 hover:border-accent transition-colors flex items-center justify-center disabled:opacity-50">
+                      className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0 bg-encr-100 dark:bg-encr-800 border-2 border-dashed border-encr-300 dark:border-encr-600 hover:border-accent transition-colors flex items-center justify-center disabled:opacity-50">
                       {avatarPreview ? (
                         <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
                       ) : (

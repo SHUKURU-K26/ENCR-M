@@ -13,7 +13,11 @@ import Avatar from '../components/Avatar'
 import ChatWindow from '../components/ChatWindow'
 import AdminPanel from '../components/AdminPanel'
 import PasswordGate from '../components/PasswordGate'
+import AgasekeBasket from '../components/AgasekeBasket'
 import Logo from '../components/Logo'
+import ImigongoBorder from '../components/ImigongoBorder'
+import ImigongoBackdrop from '../components/ImigongoBackdrop'
+import SplashScreen from '../components/SplashScreen'
 
 const ORG_SECTIONS = [...ORG_ROLES.filter(r => r !== 'Other'), 'Other', 'Administration', 'Unassigned']
 
@@ -130,20 +134,20 @@ export default function ChatPage() {
     return (
       <div className="flex flex-col h-full">
         {/* Brand */}
-        <div className="px-4 pt-5 pb-4 flex items-center justify-between border-b border-encr-200 dark:border-encr-800">
+        <div className="px-4 pt-5 pb-4 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-14 h-14 bg-accent rounded-xl flex items-center justify-center">
-              <Logo size={40} className="text-white"/>
+            <div className="w-8 h-8 bg-accent rounded-xl flex items-center justify-center">
+              <Logo size={16} className="text-white"/>
             </div>
             <div>
-              <div className="font-bold text-encr-900 dark:text-encr-100 text-base leading-none">V-UrugwiroChat</div>
+              <div className="font-bold text-encr-900 dark:text-encr-100 text-base leading-none">V-Urugwiro</div>
               <div className="text-[10px] text-encr-400 font-mono">SECURE CHANNEL</div>
             </div>
           </div>
           <button onClick={() => setSideOpen(false)} className="lg:hidden text-encr-400">
             <X size={18}/>
           </button>
-        </div>
+        </div>        
 
         {/* User info */}
         <div className="px-4 py-3 flex items-center gap-3 border-b border-encr-200 dark:border-encr-800">
@@ -296,7 +300,10 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="h-screen flex bg-encr-50 dark:bg-encr-950 overflow-hidden">
+    <div className="h-screen flex bg-encr-50 dark:bg-encr-950 overflow-hidden relative">    
+      <SplashScreen forceDark={false}>
+        V-Urugwiro<span className="text-accent">Chat</span>
+      </SplashScreen>
       {/* Desktop sidebar */}
       <aside className="hidden lg:flex flex-col w-[340px] flex-shrink-0 bg-white dark:bg-encr-900 border-r border-encr-200 dark:border-encr-800">
         <SidebarContent/>
@@ -334,21 +341,23 @@ export default function ChatPage() {
             onlineUsers={onlineUsers}
           />
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
+          <div className="flex-1 flex flex-col items-center justify-center text-center p-8 relative overflow-hidden">
+            <ImigongoBackdrop />
             <div className="w-24 h-24 bg-accent/10 rounded-3xl flex items-center justify-center mb-6">
-              <Lock size={40} className="text-accent/60"/>
+              <AgasekeBasket size={44} />
             </div>
+
             <h2 className="text-2xl font-bold text-encr-800 dark:text-encr-100 mb-2">
               Select a contact to begin
             </h2>
             <p className="text-encr-400 text-sm max-w-xs leading-relaxed">
-              All conversations are AES-256 end-to-end encrypted.
+                Every conversation here is private — sealed from the moment you send it.
             </p>
             <div className="flex items-center gap-4 mt-6">
               {[
-                { icon: Lock, label: 'E2E Encrypted' },
-                { icon: Zap, label: 'Real-time' },
-                { icon: EyeOff, label: 'Zero-Knowledge' },
+                { icon: Lock, label: 'Private' },
+                { icon: Zap, label: 'Instant' },
+                { icon: EyeOff, label: 'Confidential' },
               ].map(f => (
                 <div key={f.label} className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-encr-100 dark:bg-encr-800/60">
                   <f.icon size={14} className="text-accent" />
